@@ -434,10 +434,10 @@
             { russian: "человек", english: "人" },
             { russian: "женщина", english: "女人" },
             { russian: "мужчина", english: "男人" },
-            { russian: "reбёнок", english: "孩子" },
+            { russian: "ребёнок", english: "孩子" },
             { russian: "родители", english: "父母" },
             { russian: "брат", english: "兄弟" },
-            { russian: "сестра", english: "姐妹" },
+            { russian: "seстра", english: "姐妹" },
             { russian: "сын", english: "儿子" },
             { russian: "дочь", english: "女儿" },
             { russian: "бабушка", english: "奶奶/外婆" },
@@ -616,9 +616,9 @@
             { russian: "большая", english: "大的 (阴性)" },
             { russian: "маленькая", english: "小的 (阴性)" },
             { russian: "новый", english: "新的 (阳性)" },
-            { russian: "старый", english: "老的 (阴性)" },
-            { russian: "молодой", english: "年轻的 (阴性)" },
-            { russian: "красивый", english: "美丽的 (阴性)" },
+            { russian: "старая", english: "老的 (阴性)" },
+            { russian: "молодая", english: "年轻的 (阴性)" },
+            { russian: "красивая", english: "美丽的 (阴性)" },
             { russian: "интересная", english: "有趣的 (阴性)" },
             { russian: "скучная", english: "无聊的 (阴性)" },
             { russian: "счастливая", english: "幸福的 (阴性)" },
@@ -764,7 +764,7 @@
             { russian: "низкий", english: "低的" },
             { russian: "широкий", english: "宽的" },
             { russian: "узкий", english: "窄的" },
-            { russian: "dлинный", english: "长的" },
+            { russian: "длинный", english: "长的" },
             { russian: "короткий", english: "短的" },
             { russian: "круглый", english: "圆的" },
             { russian: "квадратный", english: "方的" },
@@ -1028,7 +1028,7 @@
         });
 
         // 关闭相关单词模态框
-        closeRelatedWordsBtn.addEventListener('click', () => {
+        closeRelatedWordsModalBtn.addEventListener('click', () => {
             relatedWordsModal.classList.remove('show');
         });
 
@@ -1099,7 +1099,7 @@
                 };
             }
 
-            const apiKey = "AIzaSyBataOa2fBczg3t3bwXzMEL1nIfbt8qeMo"; // 您的 Gemini API 密钥已在此处填入
+            const apiKey = "AIzaSyBataOa2fBczg3t3bwXzMEL1nIfbt8qeMo"; // 已填入的 Gemini API 密钥
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -2054,7 +2054,7 @@
                                         return '';
                                     }).join('')}
                                 </ul>
-                                <p><strong>3. 易混淆词辨析:</strong></p>
+                                <p><strong>3. 易混淆词辨析:</b></p>
                                 <p>词: <strong>${result.quadrant3.confusableWord.word}</strong></p>
                                 <p>区别: ${result.quadrant3.confusableWord.distinction}</p>
                                 <p><strong>4. 主题联想图:</strong></p>

@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>俄语单词记忆训练</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* 浅灰色背景 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px; /* 增加整体内边距 */
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem; /* 圆角 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+            min-height: 100px; /* 最小高度 */
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        .card.flipped {
+            background-color: #e0f2fe; /* 翻转后的背景色 */
+        }
+        .card.matched {
+            background-color: #d1fae5; /* 匹配后的背景色 */
+            pointer-events: none; /* 匹配后不可点击 */
+            transform: scale(0.95);
+            opacity: 0.7;
+        }
+        .card.selected {
+            border: 3px solid #3b82f6; /* 选中时的边框 */
+        }
+        .button-primary {
+            background-color: #3b82f6; /* 蓝色 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: inline-flex; /* 确保图标和文本对齐 */
+            align-items: center;
+            justify-content: center;
+        }
+        .button-primary:hover {
+            background-color: #2563eb; /* 深蓝色 */
+            transform: translateY(-2px);
+        }
+        .button-primary:active {
+            transform: translateY(0);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .mode-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            background-color: #e2e8f0; /* 浅灰色 */
+            color: #4a5568; /* 深灰色文本 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .mode-button.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .mode-button:hover:not(.active) {
+            background-color: #cbd5e0; /* 更浅的灰色 */
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+            display: none; /* 默认隐藏 */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .message-box.show {
+            display: block;
+            opacity: 1;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none; /* 默认隐藏 */
+        }
+        .overlay.show {
+            display: block;
+        }
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden; /* 初始隐藏 */
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+        }
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .close-button:hover {
+            color: #374151;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin-right: 8px; /* Space between spinner and text */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #3b82f6;
+        }
+        .lookup-table th, .lookup-table td {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .lookup-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+
+        /* Four Quadrant Specific Styles */
+        .quadrant-section {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .quadrant-section h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e0f2fe;
+            padding-bottom: 0.5rem;
+        }
+        .quadrant-section ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+        }
+        .quadrant-section ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+        }
+        .quadrant-section p, .quadrant-section li {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+        .quadrant-section strong {
+            color: #1a202c;
+        }
+
+        /* New styles for Fill-in-the-blanks with letter choices */
+        .letter-choices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .letter-choice {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 8px 12px;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            user-select: none; /* Prevent text selection */
+            min-width: 40px; /* Ensure a consistent size */
+            text-align: center;
+        }
+        .letter-choice:hover {
+            background-color: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        .letter-choice.selected {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .letter-choice.correct {
+            background-color: #34d399; /* green-400 */
+            color: white;
+        }
+        .letter-choice.incorrect {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+        }
+        .fill-in-the-blank-word {
+            display: inline-block;
+            min-width: 80px; /* Adjust based on expected word length */
+            border-bottom: 2px dashed #9ca3af; /* Gray dashed line */
+            text-align: center;
+            font-weight: bold;
+            color: #2d3748; /* Dark gray for filled text */
+            margin: 0 4px;
+        }
+        .fill-in-the-blank-word.correct {
+            color: #34d399; /* Green for correct */
+        }
+        .fill-in-the-blank-word.incorrect {
+            color: #ef4444; /* Red for incorrect */
+        }
+    </style>
+</head>
+<body>
+    <!-- 弹窗/消息框 -->
+    <div id="messageBox" class="message-box">
+        <p id="messageText" class="text-xl font-semibold mb-4"></p>
+        <button id="messageBoxCloseBtn" class="button-primary">确定</button>
+    </div>
+    <div id="overlay" class="overlay"></div>
+
+    <!-- AI 生成时的全局加载动画 -->
+    <div id="globalLoadingOverlay" class="overlay">
+        <div class="message-box show">
+            <div class="flex items-center justify-center">
+                <div class="loading-spinner"></div>
+                <span class="loading-text ml-2">AI 正在生成内容，请稍候...</span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 添加单词模态框 -->
+    <div id="addWordModal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" id="closeAddWordModal">&times;</button>
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">添加自定义单词</h2>
+            <p class="text-gray-600 mb-4 text-center">
+                由于技术限制，目前无法通过拍照识别添加单词。<br>请手动输入单词及其翻译。
+            </p>
+            <div class="mb-4">
+                <label for="russianInput" class="block text-gray-700 text-sm font-bold mb-2">俄语单词:</label>
+                <input type="text" id="russianInput" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="例如: привет">
+            </div>
+            <div class="mb-6">
+                <label for="englishInput" class="block text-gray-700 text-sm font-bold mb-2">中文翻译:</label>
+                <input type="text" id="englishInput" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="例如: 你好">
+            </div>
+            <button id="addCustomWordBtn" class="button-primary w-full">添加单词</button>
+        </div>
+    </div>
+
+    <!-- 相关单词模态框 -->
+    <div id="relatedWordsModal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" id="closeRelatedWordsModal">&times;</button>
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">相关词汇拓展 ✨</h2>
+            <div id="relatedWordsList" class="text-gray-700 max-h-60 overflow-y-auto mb-4">
+                <!-- 相关单词列表将在此处加载 -->
+            </div>
+            <button id="addSelectedRelatedWordsBtn" class="button-primary w-full bg-green-500 hover:bg-green-600">添加选中单词</button>
+        </div>
+    </div>
+
+    <!-- 写作主题模态框 -->
+    <div id="writingTopicModal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" id="closeWritingTopicModal">&times;</button>
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">选择写作主题</h2>
+            <div class="mb-4">
+                <label for="topicInput" class="block text-gray-700 text-sm font-bold mb-2">输入主题 (可选):</label>
+                <input type="text" id="topicInput" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="例如: 我的爱好">
+            </div>
+            <button id="generateNewTopicBtn" class="button-primary w-full bg-blue-500 hover:bg-blue-600 mb-4"><i class="fas fa-magic mr-2"></i> 生成随机主题</button>
+            <button id="startWritingBtn" class="button-primary w-full">开始写作</button>
+        </div>
+    </div>
+
+
+    <div class="container mx-auto p-4 max-w-4xl w-full">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">俄语单词记忆训练</h1>
+            <p class="text-lg text-gray-600">选择一种记忆方式，开始学习吧！</p>
+        </header>
+
+        <!-- 模式选择按钮 -->
+        <nav class="flex flex-wrap justify-center space-x-2 md:space-x-4 mb-8">
+            <button id="flashcardModeBtn" class="mode-button active mb-2">抽认卡</button>
+            <button id="matchingGameModeBtn" class="mode-button mb-2">匹配游戏</button>
+            <button id="speakingPracticeModeBtn" class="mode-button mb-2">口语练习</button>
+            <button id="writingPracticeModeBtn" class="mode-button mb-2">写作学习 ✨</button>
+            <button id="wordLookupModeBtn" class="mode-button mb-2">词汇查询 🔍</button>
+            <button id="fourQuadrantModeBtn" class="mode-button bg-orange-500 hover:bg-orange-600 text-white mb-2"><i class="fas fa-brain mr-2"></i> 四象限背词法</button>
+            <button id="openAddWordModalBtn" class="mode-button bg-purple-500 hover:bg-purple-600 text-white mb-2"><i class="fas fa-plus mr-2"></i>添加单词</button>
+        </nav>
+
+        <!-- 主内容区域 -->
+        <main id="gameArea" class="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center justify-center min-h-[400px] transition-all duration-300 ease-in-out fade-in">
+            <!-- 内容将由JavaScript动态加载 -->
+        </main>
+
+        <footer class="text-center mt-8 text-gray-500">
+            <p>&copy; 2025 俄语单词记忆训练. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // 词汇数据 (从 localStorage 加载或使用默认值)
+        let vocabulary = JSON.parse(localStorage.getItem('russianVocabulary')) || [
+            { russian: "привет", english: "你好" },
+            { russian: "спасибо", english: "谢谢" },
+            { russian: "до свидания", english: "再见" },
+            { russian: "пожалуйста", english: "请/不客气" },
+            { russian: "да", english: "是" },
+            { russian: "нет", english: "不" },
+            { russian: "любовь", english: "爱" },
+            { russian: "мир", english: "和平/世界" },
+            { russian: "вода", english: "水" },
+            { russian: "хлеб", english: "面包" },
+            { russian: "книга", english: "书" },
+            { russian: "город", english: "城市" },
+            { russian: "утро", english: "早晨" },
+            { russian: "вечер", english: "夜晚" },
+            { russian: "день", english: "白天" },
+            { russian: "ночь", english: "夜晚" },
+            { russian: "друг", english: "朋友" },
+            { russian: "семья", english: "家庭" },
+            { russian: "красивый", english: "美丽的" },
+            { russian: "хорошо", english: "好的" },
+            { russian: "ученик", english: "学生" },
+            { russian: "учитель", english: "老师" },
+            { russian: "школа", english: "学校" },
+            { russian: "урок", english: "课" },
+            { russian: "дом", english: "家" },
+            { russian: "стол", english: "桌子" },
+            { russian: "стул", english: "椅子" },
+            { russian: "окно", english: "窗户" },
+            { russian: "дверь", english: "门" },
+            { russian: "комната", english: "房间" },
+            { russian: "машина", english: "汽车" },
+            { russian: "улица", english: "街道" },
+            { russian: "площадь", english: "广场" },
+            { russian: "парк", english: "公园" },
+            { russian: "дерево", english: "树" },
+            { russian: "цветок", english: "花" },
+            { russian: "солнце", english: "太阳" },
+            { russian: "луна", english: "月亮" },
+            { russian: "звезда", english: "星星" },
+            { russian: "небо", english: "天空" },
+            { russian: "земля", english: "地球" },
+            { russian: "страна", english: "国家" },
+            { russian: "язык", english: "语言" },
+            { russian: "русский", english: "俄语的/俄罗斯人" },
+            { russian: "английский", english: "英语的/英国人" },
+            { russian: "китайский", english: "汉语的/中国人" },
+            { russian: "человек", english: "人" },
+            { russian: "женщина", english: "女人" },
+            { russian: "мужчина", english: "男人" },
+            { russian: "ребёнок", english: "孩子" },
+            { russian: "родители", english: "父母" },
+            { russian: "брат", english: "兄弟" },
+            { russian: "сестра", english: "姐妹" },
+            { russian: "сын", english: "儿子" },
+            { russian: "дочь", english: "女儿" },
+            { russian: "бабушка", english: "奶奶/外婆" },
+            { russian: "дедушка", english: "爷爷/外公" },
+            { russian: "работа", english: "工作" },
+            { russian: "магазин", english: "商店" },
+            { russian: "деньги", english: "钱" },
+            { russian: "еда", english: "食物" },
+            { russian: "пить", english: "喝" },
+            { russian: "есть", english: "吃" },
+            { russian: "спать", english: "睡觉" },
+            { russian: "читать", english: "读" },
+            { russian: "писать", english: "写" },
+            { russian: "говорить", english: "说" },
+            { russian: "слушать", english: "听" },
+            { russian: "смотреть", english: "看" },
+            { russian: "делать", english: "做" },
+            { russian: "идти", english: "走" },
+            { russian: "ехать", english: "乘车" },
+            { russian: "знать", english: "知道" },
+            { russian: "понимать", english: "理解" },
+            { russian: "хотеть", english: "想要" },
+            { russian: "любить", english: "爱" },
+            { russian: "жить", english: "居住" },
+            { russian: "работать", english: "工作" },
+            { russian: "учиться", english: "学习" },
+            { russian: "отдыхать", english: "休息" },
+            { russian: "погода", english: "天气" },
+            { russian: "холодно", english: "冷" },
+            { russian: "тепло", english: "暖和" },
+            { russian: "жарко", english: "热" },
+            { russian: "хорошо", english: "好" },
+            { russian: "плохо", english: "坏" },
+            { russian: "большой", english: "大的" },
+            { russian: "маленький", english: "小的" },
+            { russian: "новый", english: "新的" },
+            { russian: "старый", english: "老的" },
+            { russian: "молодой", english: "年轻的" },
+            { russian: "красивый", english: "美丽的" },
+            { russian: "интересный", english: "有趣的" },
+            { russian: "скучный", english: "无聊的" },
+            { russian: "счастливый", english: "幸福的" },
+            { russian: "грустный", english: "悲伤的" },
+            { russian: "быстро", english: "快地" },
+            { russian: "медленно", english: "慢地" },
+            { russian: "много", english: "许多" },
+            { russian: "мало", english: "很少" },
+            { russian: "всегда", english: "总是" },
+            { russian: "никогда", english: "从不" },
+            { russian: "сейчас", english: "现在" },
+            { russian: "потом", english: "然后" },
+            { russian: "завтра", english: "明天" },
+            { russian: "вчера", english: "昨天" },
+            { russian: "сегодня", english: "今天" },
+            { russian: "здесь", english: "这里" },
+            { russian: "там", english: "那里" },
+            { russian: "куда", english: "去哪里" },
+            { russian: "откуда", english: "从哪里" },
+            { russian: "как", english: "怎样" },
+            { russian: "когда", english: "何时" },
+            { russian: "почему", english: "为什么" },
+            { russian: "что", english: "什么" },
+            { russian: "кто", english: "谁" },
+            { russian: "где", english: "在哪里" },
+            { russian: "какой", english: "什么样的" },
+            { russian: "который", english: "哪个" },
+            { russian: "сколько", english: "多少" },
+            { russian: "это", english: "这个" },
+            { russian: "тот", english: "那个" },
+            { russian: "мой", english: "我的" },
+            { russian: "твой", english: "你的" },
+            { russian: "наш", english: "我们的" },
+            { russian: "ваш", english: "你们的/您的" },
+            { russian: "их", english: "他们的" },
+            { russian: "его", english: "他的/它的" },
+            { russian: "её", english: "她的" },
+            { russian: "и", english: "和" },
+            { russian: "но", english: "但是" },
+            { russian: "или", english: "或者" },
+            { russian: "потому что", english: "因为" },
+            { russian: "если", english: "如果" },
+            { russian: "чтобы", english: "为了" },
+            { russian: "чтобы не", english: "以免" },
+            { russian: "хотя", english: "虽然" },
+            { russian: "так как", english: "由于" },
+            { russian: "поэтому", english: "因此" },
+            { russian: "также", english: "也" },
+            { russian: "очень", english: "非常" },
+            { russian: "слишком", english: "太" },
+            { russian: "почти", english: "几乎" },
+            { russian: "далеко", english: "远" },
+            { russian: "близко", english: "近" },
+            { russian: "налево", english: "向左" },
+            { russian: "направо", english: "向右" },
+            { russian: "прямо", english: "直走" },
+            { russian: "вверх", english: "向上" },
+            { russian: "вниз", english: "向下" },
+            { russian: "внутри", english: "在里面" },
+            { russian: "снаружи", english: "在外面" },
+            { russian: "рядом", english: "旁边" },
+            { russian: "перед", english: "前面" },
+            { russian: "после", english: "后面" },
+            { russian: "до", english: "直到" },
+            { russian: "без", english: "没有" },
+            { russian: "для", english: "为了" },
+            { russian: "из", english: "从...出来" },
+            { russian: "на", english: "在...上/到...上" },
+            { russian: "о", english: "关于" },
+            { russian: "от", english: "从...起" },
+            { russian: "по", english: "沿着/根据" },
+            { russian: "под", english: "在...下面" },
+            { russian: "при", english: "在...旁边/在...时" },
+            { russian: "с", english: "和/从" },
+            { russian: "у", english: "在...旁边/有" },
+            { russian: "через", english: "穿过/通过" },
+            { russian: "я", english: "我" },
+            { russian: "ты", english: "你" },
+            { russian: "он", english: "他" },
+            { russian: "она", english: "她" },
+            { russian: "оно", english: "它" },
+            { russian: "мы", english: "我们" },
+            { russian: "вы", english: "你们/您" },
+            { russian: "они", english: "他们" },
+            { russian: "писать", english: "写" },
+            { russian: "читать", english: "读" },
+            { russian: "говорить", english: "说" },
+            { russian: "понимать", english: "理解" },
+            { russian: "знать", english: "知道" },
+            { russian: "думать", english: "思考" },
+            { russian: "работать", english: "工作" },
+            { russian: "учиться", english: "学习" },
+            { russian: "жить", english: "生活" },
+            { russian: "любить", english: "爱" },
+            { russian: "хотеть", english: "想要" },
+            { russian: "мочь", english: "能够" },
+            { russian: "должен", english: "应该/必须" },
+            { russian: "нужно", english: "需要" },
+            { russian: "можно", english: "可以" },
+            { russian: "нельзя", english: "不可以" },
+            { russian: "время", english: "时间" },
+            { russian: "год", english: "年" },
+            { russian: "месяц", english: "月" },
+            { russian: "неделя", english: "周" },
+            { russian: "час", english: "小时" },
+            { russian: "минута", english: "分钟" },
+            { russian: "секунда", english: "秒" },
+            { russian: "утро", english: "早晨" },
+            { russian: "день", english: "白天" },
+            { russian: "вечер", english: "晚上" },
+            { russian: "ночь", english: "夜晚" },
+            { russian: "понедельник", english: "星期一" },
+            { russian: "вторник", english: "星期二" },
+            { russian: "среда", english: "星期三" },
+            { russian: "четверг", english: "星期四" },
+            { russian: "пятница", english: "星期五" },
+            { russian: "суббота", english: "星期六" },
+            { russian: "воскресенье", english: "星期日" },
+            { russian: "январь", english: "一月" },
+            { russian: "февраль", english: "二月" },
+            { russian: "март", english: "三月" },
+            { russian: "апрель", english: "四月" },
+            { russian: "май", english: "五月" },
+            { russian: "июнь", english: "六月" },
+            { russian: "июль", english: "七月" },
+            { russian: "август", english: "八月" },
+            { russian: "сентябрь", english: "九月" },
+            { russian: "октябрь", english: "十月" },
+            { russian: "ноябрь", english: "十一月" },
+            { russian: "декабрь", english: "十二月" },
+            { russian: "весна", english: "春天" },
+            { russian: "лето", english: "夏天" },
+            { russian: "осень", english: "秋天" },
+            { russian: "зима", english: "冬天" },
+            { russian: "хорошая", english: "好的 (阴性)" },
+            { russian: "плохой", english: "坏的 (阳性)" },
+            { russian: "большая", english: "大的 (阴性)" },
+            { russian: "маленькая", english: "小的 (阴性)" },
+            { russian: "новый", english: "新的 (阳性)" },
+            { russian: "старая", english: "老的 (阴性)" },
+            { russian: "молодая", english: "年轻的 (阴性)" },
+            { russian: "красивая", english: "美丽的 (阴性)" },
+            { russian: "интересная", english: "有趣的 (阴性)" },
+            { russian: "скучная", english: "无聊的 (阴性)" },
+            { russian: "счастливая", english: "幸福的 (阴性)" },
+            { russian: "грустная", english: "悲伤的 (阴性)" },
+            { russian: "число", english: "数字/日期" },
+            { russian: "раз", english: "次/回" },
+            { russian: "два", english: "二" },
+            { russian: "три", english: "三" },
+            { russian: "четыре", english: "四" },
+            { russian: "пять", english: "五" },
+            { russian: "шесть", english: "六" },
+            { russian: "семь", english: "七" },
+            { russian: "восемь", english: "八" },
+            { russian: "девять", english: "九" },
+            { russian: "десять", english: "十" },
+            { russian: "одиннадцать", english: "十一" },
+            { russian: "двенадцать", english: "十二" },
+            { russian: "тринадцать", english: "十三" },
+            { russian: "четырнадцать", english: "十四" },
+            { russian: "пятнадцать", english: "十五" },
+            { russian: "двадцать", english: "二十" },
+            { russian: "сто", english: "一百" },
+            { russian: "тысяча", english: "一千" },
+            { russian: "миллион", english: "一百万" },
+            { russian: "первый", english: "第一" },
+            { russian: "второй", english: "第二" },
+            { russian: "третий", english: "第三" },
+            { russian: "четвёртый", english: "第四" },
+            { russian: "пятый", english: "第五" },
+            { russian: "шестой", english: "第六" },
+            { russian: "седьмой", english: "第七" },
+            { russian: "восьмой", english: "第八" },
+            { russian: "девятый", english: "第九" },
+            { russian: "десятый", english: "第十" },
+            { russian: "квартира", english: "公寓" },
+            { russian: "больница", english: "医院" },
+            { russian: "вокзал", english: "车站" },
+            { russian: "музей", english: "博物馆" },
+            { russian: "театр", english: "剧院" },
+            { russian: "кино", english: "电影院" },
+            { russian: "ресторан", english: "餐厅" },
+            { russian: "кафе", english: "咖啡馆" },
+            { russian: "банк", english: "银行" },
+            { russian: "почта", english: "邮局" },
+            { russian: "полиция", english: "警察局" },
+            { russian: "аптека", english: "药店" },
+            { russian: "библиотека", english: "图书馆" },
+            { russian: "клуб", english: "俱乐部" },
+            { russian: "концерт", english: "音乐会" },
+            { russian: "опера", english: "歌剧" },
+            { russian: "балет", english: "芭蕾" },
+            { russian: "выставка", english: "展览" },
+            { russian: "экскурсия", english: "游览" },
+            { russian: "путешествие", english: "旅行" },
+            { russian: "билет", english: "票" },
+            { russian: "паспорт", english: "护照" },
+            { russian: "виза", english: "签证" },
+            { russian: "граница", english: "边界" },
+            { russian: "аэропорт", english: "机场" },
+            { russian: "самолёт", english: "飞机" },
+            { russian: "поезд", english: "火车" },
+            { russian: "автобус", english: "公交车" },
+            { russian: "такси", english: "出租车" },
+            { russian: "метро", english: "地铁" },
+            { russian: "остановка", english: "车站/站台" },
+            { russian: "дорога", english: "路" },
+            { russian: "мост", english: "桥" },
+            { russian: "река", english: "河流" },
+            { russian: "озеро", english: "湖泊" },
+            { russian: "море", english: "大海" },
+            { russian: "океан", english: "海洋" },
+            { russian: "гора", english: "山" },
+            { russian: "лес", english: "森林" },
+            { russian: "поле", english: "田野" },
+            { russian: "сад", english: "花园" },
+            { russian: "ферма", english: "农场" },
+            { russian: "животное", english: "动物" },
+            { russian: "собака", english: "狗" },
+            { russian: "кошка", english: "猫" },
+            { russian: "птица", english: "鸟" },
+            { russian: "рыба", english: "鱼" },
+            { russian: "зверь", english: "野兽" },
+            { russian: "насекомое", english: "昆虫" },
+            { russian: "фрукт", english: "水果" },
+            { russian: "яблоко", english: "苹果" },
+            { russian: "банан", english: "香蕉" },
+            { russian: "апельсин", english: "橙子" },
+            { russian: "лимон", english: "柠檬" },
+            { russian: "виноград", english: "葡萄" },
+            { russian: "овощ", english: "蔬菜" },
+            { russian: "картофель", english: "土豆" },
+            { russian: "морковь", english: "胡萝卜" },
+            { russian: "помидор", english: "西红柿" },
+            { russian: "огурец", english: "黄瓜" },
+            { russian: "капуста", english: "卷心菜" },
+            { russian: "мясо", english: "肉" },
+            { russian: "курица", english: "鸡肉" },
+            { russian: "рыба", english: "鱼肉" },
+            { russian: "хлеб", english: "面包" },
+            { russian: "сыр", english: "奶酪" },
+            { russian: "молоко", english: "牛奶" },
+            { russian: "чай", english: "茶" },
+            { russian: "кофе", english: "咖啡" },
+            { russian: "сок", english: "果汁" },
+            { russian: "вода", english: "水" },
+            { russian: "вино", english: "葡萄酒" },
+            { russian: "пиво", english: "啤酒" },
+            { russian: "завтрак", english: "早餐" },
+            { russian: "обед", english: "午餐" },
+            { russian: "ужин", english: "晚餐" },
+            { russian: "блюдо", english: "菜肴" },
+            { russian: "вкусный", english: "美味的" },
+            { russian: "сладкий", english: "甜的" },
+            { russian: "солёный", english: "咸的" },
+            { russian: "кислый", english: "酸的" },
+            { russian: "горький", english: "苦的" },
+            { russian: "острый", english: "辣的" },
+            { russian: "холодный", english: "冷的" },
+            { russian: "горячий", english: "热的" },
+            { russian: "новый", english: "新的" },
+            { russian: "старый", english: "老的" },
+            { russian: "молодой", english: "年轻的" },
+            { russian: "старый (о человеке)", english: "年老的" },
+            { russian: "богатый", english: "富有的" },
+            { russian: "бедный", english: "贫穷的" },
+            { russian: "сильный", english: "强壮的" },
+            { russian: "слабый", english: "虚弱的" },
+            { russian: "умный", english: "聪明的" },
+            { russian: "глупый", english: "愚蠢的" },
+            { russian: "добрый", english: "善良的" },
+            { russian: "злой", english: "邪恶的" },
+            { russian: "весёлый", english: "快乐的" },
+            { russian: "грустный", english: "悲伤的" },
+            { russian: "чистый", english: "干净的" },
+            { russian: "грязный", english: "脏的" },
+            { russian: "светлый", english: "明亮的" },
+            { russian: "тёмный", english: "黑暗的" },
+            { russian: "быстрый", english: "快的" },
+            { russian: "медленный", english: "慢的" },
+            { russian: "тяжёлый", english: "重的/困难的" },
+            { russian: "лёгкий", english: "轻的/容易的" },
+            { russian: "высокий", english: "高的" },
+            { russian: "низкий", english: "低的" },
+            { russian: "широкий", english: "宽的" },
+            { russian: "узкий", english: "窄的" },
+            { russian: "длинный", english: "长的" },
+            { russian: "короткий", english: "短的" },
+            { russian: "круглый", english: "圆的" },
+            { russian: "квадратный", english: "方的" },
+            { russian: "прямоугольный", english: "长方形的" },
+            { russian: "треугольный", english: "三角形的" },
+            { russian: "цвет", english: "颜色" },
+            { russian: "белый", english: "白色" },
+            { russian: "чёрный", english: "黑色" },
+            { russian: "красный", english: "红色" },
+            { russian: "зелёный", english: "绿色" },
+            { russian: "синий", english: "蓝色" },
+            { russian: "жёлтый", english: "黄色" },
+            { russian: "коричневый", english: "棕色" },
+            { russian: "серый", english: "灰色" },
+            { russian: "оранжевый", english: "橙色" },
+            { russian: "розовый", english: "粉色" },
+            { russian: "фиолетовый", english: "紫色" },
+            { russian: "золотой", english: "金色" },
+            { russian: "серебряный", english: "银色" },
+            { russian: "рука", english: "手" },
+            { russian: "нога", english: "腿/脚" },
+            { russian: "голова", english: "头" },
+            { russian: "лицо", english: "脸" },
+            { russian: "глаз", english: "眼睛" },
+            { russian: "ухо", english: "耳朵" },
+            { russian: "нос", english: "鼻子" },
+            { russian: "рот", english: "嘴巴" },
+            { russian: "зуб", english: "牙齿" },
+            { russian: "волос", english: "头发" },
+            { russian: "тело", english: "身体" },
+            { russian: "сердце", english: "心脏" },
+            { russian: "душа", english: "灵魂" },
+            { russian: "жизнь", english: "生命" },
+            { russian: "смерть", english: "死亡" },
+            { russian: "здоровье", english: "健康" },
+            { russian: "болезнь", english: "疾病" },
+            { russian: "доктор", english: "医生" },
+            { russian: "лекарство", english: "药" },
+            { russian: "боль", english: "疼痛" },
+            { russian: "температура", english: "温度/体温" },
+            { russian: "кашель", english: "咳嗽" },
+            { russian: "насморк", english: "流鼻涕" },
+            { russian: "головная боль", english: "头痛" },
+            { russian: "живот", english: "肚子" },
+            { russian: "спина", english: "背部" },
+            { russian: "горло", english: "喉咙" },
+            { russian: "усталость", english: "疲劳" },
+            { russian: "сила", english: "力量" },
+            { russian: "энергия", english: "精力" },
+            { russian: "сон", english: "睡眠/梦" },
+            { russian: "отдых", english: "休息" },
+            { russian: "спорт", english: "运动" },
+            { russian: "игра", english: "游戏/玩耍" },
+            { russian: "музыка", english: "音乐" },
+            { russian: "песня", english: "歌曲" },
+            { russian: "танец", english: "舞蹈" },
+            { russian: "фильм", english: "电影" },
+            { russian: "книга", english: "书" },
+            { russian: "журнал", english: "杂志" },
+            { russian: "газета", english: "报纸" },
+            { russian: "компьютер", english: "电脑" },
+            { russian: "интернет", english: "互联网" },
+            { russian: "телефон", english: "电话" },
+            { russian: "телевизор", english: "电视" },
+            { russian: "радио", english: "收音机" },
+            { russian: "фотография", english: "照片" },
+            { russian: "камера", english: "相机" },
+            { russian: "подарок", english: "礼物" },
+            { russian: "праздник", english: "节日" },
+            { russian: "день рождения", english: "生日" },
+            { russian: "новый год", english: "新年" },
+            { russian: "рождество", english: "圣诞节" },
+            { russian: "пасха", english: "复活节" },
+            { russian: "свадьба", english: "婚礼" },
+            { russian: "юбилей", english: "周年纪念" },
+            { russian: "гость", english: "客人" },
+            { russian: "друг", english: "朋友" },
+            { russian: "родственник", english: "亲戚" },
+            { russian: "сосед", english: "邻居" },
+            { russian: "коллега", english: "同事" },
+            { russian: "начальник", english: "老板" },
+            { russian: "подчинённый", english: "下属" },
+            { russian: "клиент", english: "客户" },
+            { russian: "продавец", english: "售货员" },
+            { russian: "покупатель", english: "顾客" },
+            { russian: "цена", english: "价格" },
+            { russian: "скидка", english: "折扣" },
+            { russian: "качество", english: "质量" },
+            { russian: "размер", english: "尺寸" },
+            { russian: "цвет", english: "颜色" },
+            { russian: "мода", english: "时尚" },
+            { russian: "стиль", english: "风格" },
+            { russian: "одежда", english: "衣服" },
+            { russian: "обувь", english: "鞋子" },
+            { russian: "головной убор", english: "帽子" },
+            { russian: "сумка", english: "包" },
+            { russian: "украшение", english: "饰品" },
+            { russian: "карман", english: "口袋" },
+            { russian: "зонт", english: "伞" },
+            { russian: "перчатки", english: "手套" },
+            { russian: "шарф", english: "围巾" },
+            { russian: "галстук", english: "领带" },
+            { russian: "ремень", english: "皮带" },
+            { russian: "костюм", english: "西装" },
+            { russian: "платье", english: "连衣裙" },
+            { russian: "рубашка", english: "衬衫" },
+            { russian: "брюки", english: "裤子" },
+            { russian: "юбка", english: "裙子" },
+            { russian: "футболка", english: "T恤" },
+            { russian: "свитер", english: "毛衣" },
+            { russian: "пальто", english: "外套" },
+            { russian: "куртка", english: "夹克" },
+            { russian: "шуба", english: "皮大衣" },
+            { russian: "перчатки", english: "手套" },
+            { russian: "сапоги", english: "靴子" },
+            { russian: "туфли", english: "皮鞋" },
+            { russian: "кроссовки", english: "运动鞋" },
+            { russian: "тапочки", english: "拖鞋" },
+            { russian: "носки", english: "袜子" },
+            { russian: "чулки", english: "长筒袜" },
+            { russian: "белье", english: "内衣" },
+            { russian: "пижама", english: "睡衣" },
+            { russian: "купальник", english: "泳衣" },
+            { russian: "плавки", english: "泳裤" }
+        ];
+
+        // 将词汇数据保存到 localStorage
+        function saveVocabulary() {
+            localStorage.setItem('russianVocabulary', JSON.stringify(vocabulary));
+        }
+
+        // 获取 DOM 元素
+        const gameArea = document.getElementById('gameArea');
+        const flashcardModeBtn = document.getElementById('flashcardModeBtn');
+        const matchingGameModeBtn = document.getElementById('matchingGameModeBtn');
+        const speakingPracticeModeBtn = document.getElementById('speakingPracticeModeBtn');
+        const writingPracticeModeBtn = document.getElementById('writingPracticeModeBtn');
+        const wordLookupModeBtn = document.getElementById('wordLookupModeBtn');
+        const fourQuadrantModeBtn = document.getElementById('fourQuadrantModeBtn'); // 新增四象限模式按钮
+        const openAddWordModalBtn = document.getElementById('openAddWordModalBtn');
+
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+        const overlay = document.getElementById('overlay');
+        const globalLoadingOverlay = document.getElementById('globalLoadingOverlay'); // 全局加载动画
+
+        const addWordModal = document.getElementById('addWordModal');
+        const closeAddWordModalBtn = document.getElementById('closeAddWordModal');
+        const russianInput = document.getElementById('russianInput');
+        const englishInput = document.getElementById('englishInput');
+        const addCustomWordBtn = document.getElementById('addCustomWordBtn');
+
+        const relatedWordsModal = document.getElementById('relatedWordsModal');
+        const closeRelatedWordsModalBtn = document.getElementById('closeRelatedWordsModal');
+        const relatedWordsList = document.getElementById('relatedWordsList');
+        const addSelectedRelatedWordsBtn = document.getElementById('addSelectedRelatedWordsBtn');
+
+        const writingTopicModal = document.getElementById('writingTopicModal');
+        const closeWritingTopicModalBtn = document.getElementById('closeWritingTopicModal');
+        const topicInput = document.getElementById('topicInput');
+        const generateNewTopicBtn = document.getElementById('generateNewTopicBtn');
+        const startWritingBtn = document.getElementById('startWritingBtn');
+
+
+        let currentMode = 'flashcard'; // 初始模式
+        let currentWordIndex = 0; // 抽认卡模式的当前单词索引
+        let matchingCards = []; // 匹配游戏模式中选中的卡片
+        let matchedPairs = 0; // 匹配游戏模式中已匹配的对数
+        let shuffledWords = []; // 打乱后的单词数组
+
+        let currentWritingTopic = ''; // 当前写作主题
+        let writingTopics = [
+            "描述你的一天",
+            "你最喜欢的爱好是什么？",
+            "介绍你的家乡",
+            "谈谈你为什么学习俄语",
+            "计划一次旅行",
+            "描述一个难忘的经历",
+            "你对未来有什么计划？",
+            "谈谈你最喜欢的食物或菜肴",
+            "描述你理想中的周末",
+            "你如何保持健康的生活方式？"
+        ];
+
+
+        // Speech Recognition (语音识别) 实例
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false; // 不持续识别
+            recognition.lang = 'ru-RU'; // 设置识别语言为俄语
+            recognition.interimResults = false; // 只返回最终结果
+        } else {
+            console.warn("当前浏览器不支持 Web Speech API 的 SpeechRecognition 功能。口语练习功能将不可用。");
+            speakingPracticeModeBtn.disabled = true; // 禁用按钮
+            speakingPracticeModeBtn.textContent = "口语练习 (不支持)";
+            speakingPracticeModeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        // 显示消息框
+        function showMessageBox(message) {
+            messageText.textContent = message;
+            messageBox.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        // 隐藏消息框
+        function hideMessageBox() {
+            messageBox.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        // 消息框关闭按钮事件
+        messageBoxCloseBtn.addEventListener('click', hideMessageBox);
+
+        // 显示全局加载动画
+        function showGlobalLoading() {
+            globalLoadingOverlay.classList.add('show');
+        }
+
+        // 隐藏全局加载动画
+        function hideGlobalLoading() {
+            globalLoadingOverlay.classList.remove('show');
+        }
+
+        // 显示添加单词模态框
+        openAddWordModalBtn.addEventListener('click', () => {
+            addWordModal.classList.add('show');
+            russianInput.value = '';
+            englishInput.value = '';
+        });
+
+        // 关闭添加单词模态框
+        closeAddWordModalBtn.addEventListener('click', () => {
+            addWordModal.classList.remove('show');
+        });
+
+        // 添加自定义单词
+        addCustomWordBtn.addEventListener('click', () => {
+            const russian = russianInput.value.trim();
+            const english = englishInput.value.trim();
+
+            if (russian && english) {
+                // 检查是否已存在
+                const exists = vocabulary.some(word => word.russian.toLowerCase() === russian.toLowerCase());
+                if (exists) {
+                    showMessageBox('此单词已存在于词汇表中！');
+                    return;
+                }
+                vocabulary.push({ russian, english });
+                saveVocabulary(); // 保存到 localStorage
+                showMessageBox('单词 "' + russian + ' - ' + english + '" 已添加！');
+                addWordModal.classList.remove('show');
+                // 重新加载当前模式以包含新单词（如果需要）
+                switchMode(currentMode);
+            } else {
+                showMessageBox('请填写俄语单词和中文翻译！');
+            }
+        });
+
+        // 关闭相关单词模态框
+        closeRelatedWordsModalBtn.addEventListener('click', () => {
+            relatedWordsModal.classList.remove('show');
+        });
+
+        // 添加选中相关单词
+        addSelectedRelatedWordsBtn.addEventListener('click', () => {
+            const checkboxes = relatedWordsList.querySelectorAll('input[type="checkbox"]:checked');
+            let addedCount = 0;
+            checkboxes.forEach(checkbox => {
+                const russian = checkbox.dataset.russian;
+                const english = checkbox.dataset.english;
+                // 检查是否已存在
+                const exists = vocabulary.some(vocabWord => vocabWord.russian.toLowerCase() === russian.toLowerCase());
+                if (!exists) {
+                    vocabulary.push({ russian, english });
+                    addedCount++;
+                }
+            });
+            if (addedCount > 0) {
+                saveVocabulary();
+                showMessageBox(`已添加 ${addedCount} 个新单词到你的词汇表！`);
+                switchMode(currentMode); // 刷新当前模式以更新词汇
+            } else {
+                showMessageBox('没有新的单词被添加。');
+            }
+            relatedWordsModal.classList.remove('show');
+        });
+
+        // 写作主题模态框相关逻辑
+        closeWritingTopicModalBtn.addEventListener('click', () => {
+            writingTopicModal.classList.remove('show');
+        });
+
+        generateNewTopicBtn.addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * writingTopics.length);
+            topicInput.value = writingTopics[randomIndex];
+        });
+
+        startWritingBtn.addEventListener('click', () => {
+            currentWritingTopic = topicInput.value.trim();
+            writingTopicModal.classList.remove('show');
+            loadWritingPracticeModeContent(currentWritingTopic); // 加载写作练习主界面
+        });
+
+
+        // 打乱数组的 Fisher-Yates (Knuth) 算法
+        function shuffleArray(array) {
+            // Create a shallow copy to avoid modifying the original array reference,
+            // though in this context, the LLM-generated array is new each time.
+            const newArray = [...array]; 
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // 交换元素
+            }
+            return newArray;
+        }
+
+        // LLM 调用函数
+        async function callGeminiAPI(prompt, schema = null) {
+            showGlobalLoading(); // 显示全局加载动画
+            const chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+
+            if (schema) {
+                payload.generationConfig = {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                };
+            }
+
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (schema) {
+                        try {
+                            const parsedResult = JSON.parse(text);
+                            hideGlobalLoading(); // 隐藏全局加载动画
+                            return parsedResult;
+                        } catch (e) {
+                            console.error("JSON parsing error:", e);
+                            console.error("Received text:", text);
+                            hideGlobalLoading(); // 隐藏全局加载动画
+                            showMessageBox("AI 生成内容格式错误，请稍后再试。");
+                            return null;
+                        }
+                    }
+                    hideGlobalLoading(); // 隐藏全局加载动画
+                    return text; // For plain text responses
+                } else {
+                    console.error("Gemini API returned unexpected structure or empty content:", result);
+                    hideGlobalLoading(); // 隐藏全局加载动画
+                    showMessageBox("AI 未能生成有效内容，请稍后再试。");
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                hideGlobalLoading(); // 隐藏全局加载动画
+                showMessageBox("连接 AI 服务失败，请检查网络或稍后再试。");
+                return null;
+            }
+        }
+
+        // 抽认卡模式
+        function loadFlashcardMode() {
+            gameArea.innerHTML = `
+                <div id="flashcard" class="card w-full max-w-md h-64 flex flex-col justify-center items-center relative transition-all duration-300 ease-in-out transform hover:scale-105">
+                    <div id="front" class="absolute inset-0 flex justify-center items-center text-gray-800 text-4xl font-bold p-4"></div>
+                    <div id="back" class="absolute inset-0 flex justify-center items-center text-blue-700 text-3xl font-semibold p-4 hidden"></div>
+                </div>
+                <div class="flex flex-wrap justify-center space-x-2 md:space-x-4 mt-8">
+                    <button id="prevWordBtn" class="button-primary mb-2"><i class="fas fa-arrow-left mr-2"></i> 上一个</button>
+                    <button id="nextWordBtn" class="button-primary mb-2">下一个 <i class="fas fa-arrow-right ml-2"></i></button>
+                    <button id="getWordInfoBtn" class="button-primary bg-yellow-500 hover:bg-yellow-600 mb-2">获取更多信息 ✨</button>
+                    <button id="getRelatedWordsBtn" class="button-primary bg-teal-500 hover:bg-teal-600 mb-2">生成相关单词 ✨</button>
+                </div>
+                <div id="wordInfoDisplay" class="mt-6 p-4 bg-gray-50 rounded-lg shadow-inner w-full max-w-md text-left text-gray-700 min-h-[50px]">
+                    <!-- 单词信息将在此处显示 -->
+                </div>
+            `;
+            const flashcard = document.getElementById('flashcard');
+            const front = document.getElementById('front');
+            const back = document.getElementById('back');
+            const prevWordBtn = document.getElementById('prevWordBtn');
+            const nextWordBtn = document.getElementById('nextWordBtn');
+            const getWordInfoBtn = document.getElementById('getWordInfoBtn');
+            const getRelatedWordsBtn = document.getElementById('getRelatedWordsBtn');
+            const wordInfoDisplay = document.getElementById('wordInfoDisplay');
+
+            shuffledWords = shuffleArray([...vocabulary]); // 打乱单词顺序
+            currentWordIndex = 0;
+
+            function updateFlashcard() {
+                wordInfoDisplay.innerHTML = ''; // 清空之前的信息
+                if (shuffledWords.length === 0) {
+                    front.textContent = "暂无单词";
+                    back.textContent = "请添加单词";
+                    prevWordBtn.disabled = true;
+                    nextWordBtn.disabled = true;
+                    getWordInfoBtn.disabled = true; // 禁用 LLM 按钮
+                    getRelatedWordsBtn.disabled = true; // 禁用 LLM 按钮
+                    flashcard.style.pointerEvents = 'none';
+                    return;
+                } else {
+                    prevWordBtn.disabled = false;
+                    nextWordBtn.disabled = false;
+                    getWordInfoBtn.disabled = false;
+                    getRelatedWordsBtn.disabled = false;
+                    flashcard.style.pointerEvents = 'auto';
+                }
+                const word = shuffledWords[currentWordIndex];
+                front.textContent = word.russian;
+                back.textContent = word.english;
+                flashcard.classList.remove('flipped'); // 确保卡片正面朝上
+                front.classList.remove('hidden');
+                back.classList.add('hidden');
+            }
+
+            flashcard.addEventListener('click', () => {
+                if (shuffledWords.length === 0) return;
+                flashcard.classList.toggle('flipped');
+                front.classList.toggle('hidden');
+                back.classList.toggle('hidden');
+            });
+
+            prevWordBtn.addEventListener('click', () => {
+                if (shuffledWords.length === 0) return;
+                currentWordIndex = (currentWordIndex - 1 + shuffledWords.length) % shuffledWords.length;
+                updateFlashcard();
+            });
+
+            nextWordBtn.addEventListener('click', () => {
+                if (shuffledWords.length === 0) return;
+                currentWordIndex = (currentWordIndex + 1) % shuffledWords.length;
+                updateFlashcard();
+            });
+
+            // 获取单词更多信息 (LLM)
+            getWordInfoBtn.addEventListener('click', async () => {
+                if (shuffledWords.length === 0) return;
+                const word = shuffledWords[currentWordIndex];
+                wordInfoDisplay.innerHTML = `<div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">加载中...</span></div>`;
+
+                const prompt = `请为俄语单词 "${word.russian}" 提供至少三个例句，并说明其常见用法或短语，以及可能的中文翻译。请用中文回答。`;
+                const response = await callGeminiAPI(prompt);
+
+                if (response) {
+                    wordInfoDisplay.innerHTML = `<h3 class="text-lg font-semibold mb-2">"${word.russian}" 更多信息:</h3>` + response.replace(/\n/g, '<br>');
+                } else {
+                    wordInfoDisplay.innerHTML = `<p class="text-red-500">无法获取更多信息，请稍后再试。</p>`;
+                }
+            });
+
+            // 获取相关单词 (LLM)
+            getRelatedWordsBtn.addEventListener('click', async () => {
+                if (shuffledWords.length === 0) return;
+                const word = shuffledWords[currentWordIndex];
+                relatedWordsList.innerHTML = `<div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">加载中...</span></div>`;
+                relatedWordsModal.classList.add('show');
+
+                const schema = {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            "russian": { "type": "STRING" },
+                            "english": { "type": "STRING" }
+                        },
+                        "propertyOrdering": ["russian", "english"]
+                    }
+                };
+                const prompt = `请为俄语单词 "${word.russian}" 提供 5 个相关的俄语单词及其对应的中文翻译。请以 JSON 数组形式返回，每个对象包含 "russian" 和 "english" 字段。不要包含无关的解释或格式。`;
+                const response = await callGeminiAPI(prompt, schema);
+
+                if (response && Array.isArray(response) && response.length > 0) {
+                    relatedWordsList.innerHTML = `<p class="mb-2">选择你想添加的单词：</p>`;
+                    response.forEach(relatedWord => {
+                        // 避免添加已存在的单词
+                        const exists = vocabulary.some(vocabWord => vocabWord.russian.toLowerCase() === relatedWord.russian.toLowerCase());
+                        const itemClass = exists ? 'opacity-50 line-through' : ''; // 添加样式表示已存在
+                        relatedWordsList.innerHTML += `
+                            <div class="flex items-center mb-2 ${itemClass}">
+                                <input type="checkbox" id="rw-${relatedWord.russian}" data-russian="${relatedWord.russian}" data-english="${relatedWord.english}" class="mr-2" ${exists ? 'disabled' : ''}>
+                                <label for="rw-${relatedWord.russian}">${relatedWord.russian} - ${relatedWord.english}</label>
+                            </div>
+                        `;
+                    });
+                    addSelectedRelatedWordsBtn.disabled = false;
+                } else {
+                    relatedWordsList.innerHTML = `<p class="text-red-500">无法生成相关单词，请稍后再试。</p>`;
+                    addSelectedRelatedWordsBtn.disabled = true;
+                }
+            });
+
+            updateFlashcard();
+        }
+
+        // 匹配游戏模式
+        function loadMatchingGameMode() {
+            gameArea.innerHTML = `
+                <div id="matchingGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+                    <!-- 卡片将由JavaScript动态加载 -->
+                </div>
+                <button id="resetMatchingBtn" class="button-primary mt-8">重新开始</button>
+            `;
+            const matchingGrid = document.getElementById('matchingGrid');
+            const resetMatchingBtn = document.getElementById('resetMatchingBtn');
+
+            matchingCards = [];
+            matchedPairs = 0;
+
+            if (vocabulary.length < 4) { // 至少需要4个单词才能玩匹配游戏 (8张卡片)
+                matchingGrid.innerHTML = `<p class="text-gray-600 text-center col-span-full">单词数量不足，请至少添加 4 个单词才能玩匹配游戏。</p>`;
+                resetMatchingBtn.disabled = true;
+                return;
+            }
+
+            const gameWords = shuffleArray([...vocabulary]).slice(0, Math.min(vocabulary.length, 8)); // 最多取8个单词进行匹配游戏
+            let allCards = [];
+            gameWords.forEach(word => {
+                allCards.push({ value: word.russian, type: 'russian', id: word.russian + '_ru' });
+                allCards.push({ value: word.english, type: 'english', id: word.russian + '_en' });
+            });
+            allCards = shuffleArray(allCards);
+
+            allCards.forEach(cardData => {
+                const card = document.createElement('div');
+                card.classList.add('card', 'p-4', 'rounded-lg', 'shadow-md', 'flex', 'items-center', 'justify-center', 'text-xl', 'font-semibold', 'h-28', 'relative', 'overflow-hidden');
+                card.dataset.id = cardData.id;
+                card.dataset.type = cardData.type;
+                card.dataset.value = cardData.value;
+                card.textContent = cardData.value; // Initially show the text
+                card.addEventListener('click', handleCardClick);
+                matchingGrid.appendChild(card);
+            });
+
+            function handleCardClick(event) {
+                const clickedCard = event.currentTarget;
+
+                if (clickedCard.classList.contains('selected') || clickedCard.classList.contains('matched')) {
+                    return; // 避免重复点击或点击已匹配的卡片
+                }
+
+                clickedCard.classList.add('selected');
+                matchingCards.push(clickedCard);
+
+                if (matchingCards.length === 2) {
+                    // 禁用所有卡片，直到判断完成
+                    document.querySelectorAll('.card').forEach(card => card.style.pointerEvents = 'none');
+
+                    const [card1, card2] = matchingCards;
+                    const id1 = card1.dataset.id.split('_')[0];
+                    const id2 = card2.dataset.id.split('_')[0];
+
+                    if (id1 === id2 && card1.dataset.type !== card2.dataset.type) {
+                        // 匹配成功
+                        setTimeout(() => {
+                            card1.classList.remove('selected');
+                            card2.classList.remove('selected');
+                            card1.classList.add('matched');
+                            card2.classList.add('matched');
+                            matchedPairs++;
+                            matchingCards = []; // 清空已选卡片
+
+                            // 重新启用所有未匹配的卡片
+                            document.querySelectorAll('.card:not(.matched)').forEach(card => card.style.pointerEvents = 'auto');
+
+                            if (matchedPairs === gameWords.length) {
+                                showMessageBox('恭喜！你完成了匹配游戏！');
+                            }
+                        }, 600);
+                    } else {
+                        // 匹配失败
+                        setTimeout(() => {
+                            card1.classList.remove('selected');
+                            card2.classList.remove('selected');
+                            matchingCards = []; // 清空已选卡片
+
+                            // 重新启用所有未匹配的卡片
+                            document.querySelectorAll('.card:not(.matched)').forEach(card => card.style.pointerEvents = 'auto');
+                        }, 1000);
+                    }
+                }
+            }
+
+            resetMatchingBtn.addEventListener('click', loadMatchingGameMode); // 重新加载匹配游戏
+        }
+
+        // 口语练习模式
+        function loadSpeakingPracticeMode() {
+            gameArea.innerHTML = `
+                <div class="w-full max-w-md bg-white p-6 rounded-xl shadow-md text-center">
+                    <p class="text-gray-600 text-xl mb-4">请说出这个词的俄语：</p>
+                    <p id="speakingWord" class="text-5xl font-bold text-gray-800 mb-6"></p>
+                    <button id="speakBtn" class="button-primary mb-4 w-full bg-indigo-500 hover:bg-indigo-600"><i class="fas fa-volume-up mr-2"></i> 听俄语</button>
+                    <button id="recordBtn" class="button-primary mb-4 w-full bg-blue-500 hover:bg-blue-600"><i class="fas fa-microphone mr-2"></i> 开始录音</button>
+                    <p id="speechFeedback" class="text-lg font-semibold h-6 mb-4"></p>
+                    <button id="nextSpeakingBtn" class="button-primary w-full bg-green-500 hover:bg-green-600 hidden"><i class="fas fa-arrow-right mr-2"></i> 下一个单词</button>
+                </div>
+            `;
+            const speakingWord = document.getElementById('speakingWord');
+            const speakBtn = document.getElementById('speakBtn');
+            const recordBtn = document.getElementById('recordBtn');
+            const speechFeedback = document.getElementById('speechFeedback');
+            const nextSpeakingBtn = document.getElementById('nextSpeakingBtn');
+
+            if (!recognition) {
+                speakingWord.textContent = "您的浏览器不支持语音识别。";
+                speakBtn.disabled = true;
+                recordBtn.disabled = true;
+                return;
+            }
+
+            if (vocabulary.length === 0) {
+                speakingWord.textContent = "暂无单词";
+                speakBtn.disabled = true;
+                recordBtn.disabled = true;
+                nextSpeakingBtn.disabled = true;
+                return;
+            }
+
+            shuffledWords = shuffleArray([...vocabulary]);
+            currentWordIndex = 0;
+            let isRecording = false;
+
+            function displayNewWord() {
+                const word = shuffledWords[currentWordIndex];
+                speakingWord.textContent = word.english; // 显示英文单词
+                speechFeedback.textContent = ''; // 清空反馈
+                recordBtn.textContent = '开始录音';
+                recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                recordBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                nextSpeakingBtn.classList.add('hidden');
+                speakBtn.disabled = false;
+                recordBtn.disabled = false;
+            }
+
+            // 文本转语音
+            speakBtn.addEventListener('click', () => {
+                if (shuffledWords.length === 0) return;
+                const word = shuffledWords[currentWordIndex];
+                const utterance = new SpeechSynthesisUtterance(word.russian);
+                utterance.lang = 'ru-RU'; // 设置朗读语言为俄语
+                window.speechSynthesis.speak(utterance);
+            });
+
+            // 语音识别
+            recordBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                    isRecording = false;
+                    recordBtn.textContent = '开始录音';
+                    recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    recordBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                } else {
+                    speechFeedback.textContent = '请说出俄语单词...';
+                    speechFeedback.classList.remove('text-green-600', 'text-red-600');
+                    try {
+                        recognition.start();
+                        isRecording = true;
+                        recordBtn.textContent = '停止录音';
+                        recordBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                        recordBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                    } catch (e) {
+                        console.error("Speech recognition start failed: ", e);
+                        speechFeedback.textContent = '录音失败，请确保您已授权麦克风。';
+                        recordBtn.textContent = '开始录音';
+                        recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        recordBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                        isRecording = false;
+                    }
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const spokenText = event.results[0][0].transcript;
+                const word = shuffledWords[currentWordIndex];
+                const correctAnswer = word.russian.toLowerCase();
+
+                if (spokenText.toLowerCase().includes(correctAnswer.toLowerCase())) {
+                    speechFeedback.textContent = `正确！你说了: "${spokenText}"`;
+                    speechFeedback.classList.remove('text-red-600');
+                    speechFeedback.classList.add('text-green-600');
+                    nextSpeakingBtn.classList.remove('hidden');
+                    speakBtn.disabled = true; // 识别成功后禁用听和录音按钮
+                    recordBtn.disabled = true;
+                } else {
+                    speechFeedback.innerHTML = `错误。你说了: "${spokenText}"。正确答案是：<span class="font-bold">${word.russian}</span>`;
+                    speechFeedback.classList.remove('text-green-600');
+                    speechFeedback.classList.add('text-red-600');
+                    nextSpeakingBtn.classList.remove('hidden'); // 即使错误也可以跳到下一个
+                    speakBtn.disabled = true; // 识别后禁用听和录音按钮
+                    recordBtn.disabled = true;
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                speechFeedback.textContent = `语音识别错误: ${event.error}. 请重试或检查麦克风权限。`;
+                speechFeedback.classList.remove('text-green-600');
+                speechFeedback.classList.add('text-red-600');
+                isRecording = false;
+                recordBtn.textContent = '开始录音';
+                recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                recordBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                recordBtn.textContent = '开始录音';
+                recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                recordBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            };
+
+            function nextWord() {
+                currentWordIndex = (currentWordIndex + 1) % shuffledWords.length;
+                displayNewWord();
+            }
+            nextSpeakingBtn.addEventListener('click', nextWord);
+
+            displayNewWord();
+        }
+
+        // 写作练习模式
+        function loadWritingPracticeMode() {
+            // 打开主题选择模态框
+            writingTopicModal.classList.add('show');
+            topicInput.value = ''; // 清空主题输入框
+        }
+
+        async function loadWritingPracticeModeContent(topic) {
+            gameArea.innerHTML = `
+                <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-md text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">写作练习</h2>
+                    <p class="text-gray-600 text-xl mb-4">主题: <span id="writingCurrentTopic" class="font-semibold text-blue-700">${topic || '自由写作'}</span></p>
+                    <textarea id="userWritingInput" class="w-full h-40 p-3 border border-gray-300 rounded-lg text-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="请在这里用俄语写作..."></textarea>
+                    <div class="flex flex-wrap justify-center space-x-2 md:space-x-4 mb-4">
+                        <button id="checkWritingBtn" class="button-primary bg-green-600 hover:bg-green-700 mb-2"><i class="fas fa-edit mr-2"></i> 检查写作</button>
+                        <button id="getExampleSentencesBtn" class="button-primary bg-yellow-600 hover:bg-yellow-700 mb-2"><i class="fas fa-lightbulb mr-2"></i> 生成例句</button>
+                        <button id="nextWritingTopicBtn" class="button-primary bg-indigo-600 hover:bg-indigo-700 mb-2"><i class="fas fa-forward mr-2"></i> 下一个主题</button>
+                    </div>
+                    <div id="writingFeedbackDisplay" class="mt-4 p-4 bg-gray-50 rounded-lg shadow-inner text-left text-gray-700 min-h-[80px]">
+                        <!-- 写作反馈将在此处显示 -->
+                    </div>
+                    <div id="exampleSentencesDisplay" class="mt-4 p-4 bg-blue-50 rounded-lg shadow-inner text-left text-blue-700 hidden">
+                        <h3 class="text-lg font-semibold mb-2">例句参考:</h3>
+                        <ul id="exampleSentencesList"></ul>
+                    </div>
+                </div>
+            `;
+
+            const userWritingInput = document.getElementById('userWritingInput');
+            const checkWritingBtn = document.getElementById('checkWritingBtn');
+            const getExampleSentencesBtn = document.getElementById('getExampleSentencesBtn');
+            const nextWritingTopicBtn = document.getElementById('nextWritingTopicBtn');
+            const writingFeedbackDisplay = document.getElementById('writingFeedbackDisplay');
+            const exampleSentencesDisplay = document.getElementById('exampleSentencesDisplay');
+            const exampleSentencesList = document.getElementById('exampleSentencesList');
+            const writingCurrentTopic = document.getElementById('writingCurrentTopic');
+
+            if (topic) {
+                writingCurrentTopic.textContent = topic;
+            } else {
+                writingCurrentTopic.textContent = '自由写作';
+            }
+
+
+            // 检查写作按钮点击事件 (LLM)
+            checkWritingBtn.addEventListener('click', async () => {
+                const userText = userWritingInput.value.trim();
+                if (!userText) {
+                    showMessageBox('请先输入一些俄语文字进行检查！');
+                    return;
+                }
+                writingFeedbackDisplay.innerHTML = `<div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">正在检查写作...</span></div>`;
+
+                const prompt = `分析以下俄语学习者写的句子，并用中文提供详细反馈。请专注于语法、词汇使用和自然度。如果句子可以改进，请提供更自然或更正确的改写建议。原始句子是："${userText}"`;
+                const response = await callGeminiAPI(prompt);
+
+                if (response) {
+                    writingFeedbackDisplay.innerHTML = `<h3 class="text-lg font-semibold mb-2">写作反馈:</h3>` + response.replace(/\n/g, '<br>');
+                } else {
+                    writingFeedbackDisplay.innerHTML = `<p class="text-red-500">无法获取反馈，请稍后再试。</p>`;
+                }
+            });
+
+            // 生成例句按钮点击事件 (LLM)
+            getExampleSentencesBtn.addEventListener('click', async () => {
+                exampleSentencesDisplay.classList.remove('hidden');
+                exampleSentencesList.innerHTML = `<div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">正在生成例句...</span></div>`;
+
+                const prompt = `请为以下主题生成 3-4 个简单且常用的俄语例句，并提供对应的中文翻译。请以 JSON 数组形式返回，每个对象包含 "russian" 和 "english" 字段。主题是：“${currentWritingTopic || '通用俄语表达'}”。`;
+                const schema = {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            "russian": { "type": "STRING" },
+                            "english": { "type": "STRING" }
+                        },
+                        "propertyOrdering": ["russian", "english"]
+                    }
+                };
+                const response = await callGeminiAPI(prompt, schema);
+
+                if (response && Array.isArray(response) && response.length > 0) {
+                    exampleSentencesList.innerHTML = ''; // 清空旧例句
+                    response.forEach(sentence => {
+                        exampleSentencesList.innerHTML += `
+                            <li class="mb-2">
+                                <p class="font-bold">${sentence.russian}</p>
+                                <p class="text-gray-600 text-sm">${sentence.english}</p>
+                            </li>
+                        `;
+                    });
+                } else {
+                    exampleSentencesList.innerHTML = `<p class="text-red-500">无法生成例句，请稍后再试。</p>`;
+                }
+            });
+
+            // 下一个主题按钮点击事件
+            nextWritingTopicBtn.addEventListener('click', () => {
+                loadWritingPracticeMode(); // 重新进入主题选择流程
+            });
+        }
+
+        // 词汇查询模式
+        function loadWordLookupMode() {
+            gameArea.innerHTML = `
+                <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-md text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">词汇查询</h2>
+                    <div class="flex items-center mb-4">
+                        <input type="text" id="lookupInput" class="w-full p-3 border border-gray-300 rounded-l-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="输入俄语或中文单词">
+                        <select id="lookupDirection" class="p-3 border border-gray-300 rounded-r-lg bg-gray-100 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="ru-zh">俄语 → 中文</option>
+                            <option value="zh-ru">中文 → 俄语</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-wrap justify-center space-x-2 md:space-x-4 mb-4">
+                        <button id="lookupBtn" class="button-primary mb-2"><i class="fas fa-search mr-2"></i> 查询</button>
+                        <button id="lookupToFourQuadrantBtn" class="button-primary bg-orange-500 hover:bg-orange-600 mb-2"><i class="fas fa-brain mr-2"></i> 生成助记材料</button>
+                    </div>
+
+                    <div id="lookupResultDisplay" class="mt-4 p-4 bg-gray-50 rounded-lg shadow-inner text-left text-gray-700 min-h-[100px]">
+                        <!-- 查询结果将在此处显示 -->
+                    </div>
+
+                    <div id="declensionDisplay" class="mt-6 p-4 bg-white rounded-lg shadow-inner text-left text-gray-700 hidden">
+                        <h3 class="text-lg font-semibold mb-2">变格表:</h3>
+                        <table class="lookup-table w-full border-collapse">
+                            <thead>
+                                <tr><th>格位</th><th>单数</th><th>复数</th></tr>
+                            </thead>
+                            <tbody id="declensionTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="conjugationDisplay" class="mt-6 p-4 bg-white rounded-lg shadow-inner text-left text-gray-700 hidden">
+                        <h3 class="text-lg font-semibold mb-2">现在时变位表:</h3>
+                        <table class="lookup-table w-full border-collapse">
+                            <thead>
+                                <tr><th>人称/数</th><th>形式</th></tr>
+                            </thead>
+                            <tbody id="conjugationTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            const lookupInput = document.getElementById('lookupInput');
+            const lookupDirection = document.getElementById('lookupDirection');
+            const lookupBtn = document.getElementById('lookupBtn');
+            const lookupToFourQuadrantBtn = document.getElementById('lookupToFourQuadrantBtn'); // 新增按钮
+            const lookupResultDisplay = document.getElementById('lookupResultDisplay');
+            const declensionDisplay = document.getElementById('declensionDisplay');
+            const declensionTableBody = document.getElementById('declensionTableBody');
+            const conjugationDisplay = document.getElementById('conjugationDisplay');
+            const conjugationTableBody = document.getElementById('conjugationTableBody');
+
+            // 俄语格位名称映射
+            const russianCasesMap = {
+                "Nominative": "第一格 (主格)",
+                "Genitive": "第二格 (属格)",
+                "Dative": "第三格 (与格)",
+                "Accusative": "第四格 (宾格)",
+                "Instrumental": "第五格 (工具格)",
+                "Prepositional": "第六格 (前置格)"
+            };
+            
+            // 俄语动词变位人称映射
+            const russianConjugationMap = {
+                "Я (I)": "我",
+                "Ты (You singular informal)": "你 (单数非正式)",
+                "Он/Она/Оно (He/She/It)": "他/她/它",
+                "Мы (We)": "我们",
+                "Вы (You plural/formal)": "你们/您",
+                "Они (They)": "他们"
+            };
+
+
+            lookupBtn.addEventListener('click', async () => {
+                const inputWord = lookupInput.value.trim();
+                const direction = lookupDirection.value;
+
+                if (!inputWord) {
+                    showMessageBox('请输入要查询的单词！');
+                    return;
+                }
+
+                lookupResultDisplay.innerHTML = `<div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">正在查询...</span></div>`;
+                declensionDisplay.classList.add('hidden');
+                conjugationDisplay.classList.add('hidden');
+
+                let russianWordForForms = ''; // 用于查询变位/变格的俄语单词
+
+                // Step 1: Get translation and word type
+                const wordInfoSchema = {
+                    type: "OBJECT",
+                    properties: {
+                        "originalWord": { "type": "STRING" },
+                        "translatedWord": { "type": "STRING" },
+                        "wordType": { "type": "STRING", "enum": ["名词 (Noun)", "动词 (Verb)", "形容词 (Adjective)", "副词 (Adverb)", "其他 (Other)"] }
+                    },
+                    "required": ["originalWord", "translatedWord", "wordType"]
+                };
+                let wordInfoPrompt = '';
+                if (direction === 'ru-zh') {
+                    wordInfoPrompt = `请将俄语单词 "${inputWord}" 翻译成中文，并判断其词性（名词、动词、形容词、副词、其他）。请以 JSON 格式返回，包含 'originalWord', 'translatedWord', 'wordType' 字段。`;
+                    russianWordForForms = inputWord;
+                } else {
+                    wordInfoPrompt = `请将中文单词 "${inputWord}" 翻译成俄语，并判断其词性（名词、动词、形容词、副词、其他）。请以 JSON 格式返回，包含 'originalWord', 'translatedWord', 'wordType' 字段。`;
+                    // If Chinese to Russian, the translatedWord will be Russian.
+                }
+
+                const wordInfo = await callGeminiAPI(wordInfoPrompt, wordInfoSchema);
+
+                if (wordInfo && wordInfo.translatedWord && wordInfo.wordType) {
+                    if (direction === 'zh-ru') {
+                        russianWordForForms = wordInfo.translatedWord; // Use the Russian translation for forms
+                    }
+                    lookupResultDisplay.innerHTML = `
+                        <h3 class="text-xl font-bold mb-2">查询结果:</h3>
+                        <p class="mb-1"><strong>${wordInfo.originalWord}</strong> (${direction === 'ru-zh' ? '俄语' : '中文'}) → <strong>${wordInfo.translatedWord}</strong> (${direction === 'ru-zh' ? '中文' : '俄语'})</p>
+                        <p>词性: ${wordInfo.wordType}</p>
+                    `;
+
+                    // Step 2: Get grammatical forms based on word type
+                    if (russianWordForForms) { // Only proceed if we have a Russian word to query forms for
+                        if (wordInfo.wordType === '名词 (Noun)' || wordInfo.wordType === '形容词 (Adjective)') {
+                            declensionTableBody.innerHTML = `<tr><td colspan="3"><div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">加载变格表...</span></div></td></tr>`;
+                            declensionDisplay.classList.remove('hidden');
+
+                            const declensionSchema = {
+                                type: "OBJECT",
+                                properties: {
+                                    "declension": {
+                                        "type": "ARRAY",
+                                        "items": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "case": { "type": "STRING" },
+                                                "singular": { "type": "STRING" },
+                                                "plural": { "type": "STRING" }
+                                            },
+                                            "required": ["case", "singular", "plural"]
+                                        }
+                                    }
+                                },
+                                "required": ["declension"]
+                            };
+                            const declensionPrompt = `请为俄语单词 "${russianWordForForms}" 生成其完整的变格表（名词或形容词）。请包括所有格位（主格、属格、与格、宾格、工具格、前置格）的单数和复数形式，并以 JSON 格式返回。JSON应包含一个“declension”数组，数组中的每个对象有“case”、“singular”和“plural”字段。`;
+                            const declensionResult = await callGeminiAPI(declensionPrompt, declensionSchema);
+
+                            declensionTableBody.innerHTML = ''; // Clear loading
+                            if (declensionResult && Array.isArray(declensionResult.declension) && declensionResult.declension.length > 0) {
+                                declensionResult.declension.forEach(form => {
+                                    // 映射格位名称为中文数字表示
+                                    const chineseCase = russianCasesMap[form.case] || form.case;
+                                    declensionTableBody.innerHTML += `
+                                        <tr>
+                                            <td>${chineseCase}</td>
+                                            <td>${form.singular}</td>
+                                            <td>${form.plural}</td>
+                                        </tr>
+                                    `;
+                                });
+                            } else {
+                                declensionTableBody.innerHTML = `<tr><td colspan="3" class="text-red-500">无法获取变格表。</td></tr>`;
+                            }
+                        } else if (wordInfo.wordType === '动词 (Verb)') {
+                            conjugationTableBody.innerHTML = `<tr><td colspan="2"><div class="flex items-center justify-center"><div class="loading-spinner"></div><span class="loading-text ml-2">加载变位表...</span></div></td></tr>`;
+                            conjugationDisplay.classList.remove('hidden');
+
+                            const conjugationSchema = {
+                                type: "OBJECT",
+                                properties: {
+                                    "conjugation": {
+                                        "type": "ARRAY",
+                                        "items": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "personNumber": { "type": "STRING" },
+                                                "form": { "type": "STRING" }
+                                            },
+                                            "required": ["personNumber", "form"]
+                                        }
+                                    }
+                                },
+                                "required": ["conjugation"]
+                            };
+                            const conjugationPrompt = `请为俄语动词 "${russianWordForForms}" 生成其完整的现在时变位表。请包括所有的人称形式（我、你、他/她/它、我们、你们、他们），并以 JSON 格式返回。JSON应包含一个“conjugation”数组，数组中的每个对象有“personNumber”（人称/数）和“form”（形式）字段。`;
+                            const conjugationResult = await callGeminiAPI(conjugationPrompt, conjugationSchema);
+
+                            conjugationTableBody.innerHTML = ''; // Clear loading
+                            if (conjugationResult && Array.isArray(conjugationResult.conjugation) && conjugationResult.conjugation.length > 0) {
+                                conjugationResult.conjugation.forEach(form => {
+                                    // 映射人称名称为中文表示
+                                    const chinesePerson = russianConjugationMap[form.personNumber] || form.personNumber;
+                                    conjugationTableBody.innerHTML += `
+                                        <tr>
+                                            <td>${chinesePerson}</td>
+                                            <td>${form.form}</td>
+                                        </tr>
+                                    `;
+                                });
+                            } else {
+                                conjugationTableBody.innerHTML = `<tr><td colspan="2" class="text-red-500">无法获取变位表。</td></tr>`;
+                            }
+                        } else {
+                            lookupResultDisplay.innerHTML += `<p class="mt-2 text-gray-500">此词性通常没有复杂的变格或变位。</p>`;
+                        }
+                    } else {
+                         lookupResultDisplay.innerHTML += `<p class="mt-2 text-gray-500">无法从该词获取俄语语法形式。</p>`;
+                    }
+                } else {
+                    lookupResultDisplay.innerHTML = `<p class="text-red-500">查询失败或未能识别单词类型，请检查输入。</p>`;
+                }
+            });
+
+            // 词汇查询到四象限背词法的快捷键
+            lookupToFourQuadrantBtn.addEventListener('click', async () => {
+                const inputWord = lookupInput.value.trim();
+                const direction = lookupDirection.value;
+
+                if (!inputWord) {
+                    showMessageBox('请先在查询框中输入一个单词！');
+                    return;
+                }
+
+                // 首先，尝试获取单词的俄语形式
+                let wordForMnemonic = inputWord; // 默认是输入框内容
+                if (direction === 'zh-ru') { // 如果是中文查俄语，需要先翻译
+                    const wordInfoSchema = {
+                        type: "OBJECT",
+                        properties: {
+                            "originalWord": { "type": "STRING" },
+                            "translatedWord": { "type": "STRING" },
+                            "wordType": { "type": "STRING", "enum": ["名词 (Noun)", "动词 (Verb)", "形容词 (Adjective)", "副词 (Adverb)", "其他 (Other)"] }
+                        },
+                        "required": ["originalWord", "translatedWord", "wordType"]
+                    };
+                    const wordInfoPrompt = `请将中文单词 "${inputWord}" 翻译成俄语，并判断其词性。请以 JSON 格式返回，包含 'originalWord', 'translatedWord', 'wordType' 字段。`;
+                    const wordInfo = await callGeminiAPI(wordInfoPrompt, wordInfoSchema);
+                    if (wordInfo && wordInfo.translatedWord) {
+                        wordForMnemonic = wordInfo.translatedWord;
+                    } else {
+                        showMessageBox('无法将中文单词翻译成俄语，无法生成助记材料。');
+                        return;
+                    }
+                }
+
+                // 切换到四象限模式，并传入俄语单词
+                switchMode('fourQuadrant', wordForMnemonic);
+            });
+        }
+
+        // 四象限多感官背词法模式
+        function loadFourQuadrantMode(initialWord = '') {
+            gameArea.innerHTML = `
+                <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-md text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">四象限多感官背词法 ✨</h2>
+                    <p class="text-gray-600 text-xl mb-4">输入一个俄语单词，获取完整的助记材料。</p>
+                    <input type="text" id="fourQuadrantWordInput" class="w-full p-3 border border-gray-300 rounded-lg text-xl text-center mb-4 focus:outline-none focus:ring-2 focus:ring-orange-400" placeholder="在此输入俄语单词 (例如: дом)">
+                    <button id="generateFourQuadrantBtn" class="button-primary w-full bg-orange-500 hover:bg-orange-600 mb-4"><i class="fas fa-magic mr-2"></i> 生成助记材料</button>
+                    
+                    <div id="fourQuadrantOutput" class="mt-6 text-left">
+                        <!-- 四象限内容将在此处加载 -->
+                        <div class="flex items-center justify-center p-4 hidden" id="fourQuadrantLoading">
+                            <div class="loading-spinner"></div><span class="loading-text ml-2">正在生成助记材料，请稍候...</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const fourQuadrantWordInput = document.getElementById('fourQuadrantWordInput');
+            const generateFourQuadrantBtn = document.getElementById('generateFourQuadrantBtn');
+            const fourQuadrantOutput = document.getElementById('fourQuadrantOutput');
+            const fourQuadrantLoading = document.getElementById('fourQuadrantLoading');
+
+            // 如果有初始单词，则填充并自动生成
+            if (initialWord) {
+                fourQuadrantWordInput.value = initialWord;
+                // 确保 DOM 元素被渲染后再触发点击
+                setTimeout(() => {
+                    generateFourQuadrantBtn.click();
+                }, 0); 
+            }
+
+            generateFourQuadrantBtn.addEventListener('click', async () => {
+                const word = fourQuadrantWordInput.value.trim();
+                if (!word) {
+                    showMessageBox('请输入一个俄语单词！');
+                    return;
+                }
+
+                fourQuadrantOutput.innerHTML = ''; // Clear previous output
+                fourQuadrantLoading.classList.remove('hidden'); // Show loading spinner
+
+                const schema = {
+                    type: "OBJECT",
+                    properties: {
+                        "quadrant1": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "contextAndFeeling": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                "coreFeeling": { "type": "STRING" },
+                                "vocabularyRelations": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "synonyms": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "antonyms": { "type": "ARRAY", "items": { "type": "STRING" } }
+                                    }
+                                },
+                                "etymology": { "type": "STRING" }
+                            }
+                        },
+                        "quadrant2": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "pronunciationBreakdown": { "type": "STRING" },
+                                "collocationsAndRhyme": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "collocations": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "mnemonicRhyme": { "type": "STRING" }
+                                    }
+                                }
+                            }
+                        },
+                        "quadrant3": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "spellingBreakdown": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                "derivedWords": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "noun": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "verb": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "adjective": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "adverb": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "other": { "type": "ARRAY", "items": { "type": "STRING" } }
+                                    }
+                                },
+                                "confusableWord": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "word": { "type": "STRING" },
+                                        "distinction": { "type": "STRING" }
+                                    }
+                                },
+                                "thematicAssociation": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "theme": { "type": "STRING" },
+                                        "relatedWords": { "type": "ARRAY", "items": { "type": "STRING" } }
+                                    }
+                                }
+                            }
+                        },
+                        "quadrant4": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "fillInTheBlankTest": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "sentence": { "type": "STRING" },
+                                        "answer": { "type": "STRING" },
+                                        "choices": { "type": "ARRAY", "items": { "type": "STRING" } }
+                                    }
+                                },
+                                "speakingTest": { "type": "STRING" }
+                            }
+                        }
+                    },
+                    "required": ["quadrant1", "quadrant2", "quadrant3", "quadrant4"]
+                };
+
+                const prompt = `请为俄语单词 "${word}" 提供一套完整的助记材料，遵循“四象限多感官背词法”：
+
+**第一象限：感觉画面**
+1.  **语境与感觉:** 提供2-3个简短生动的例句（俄语原文及中文翻译），并用一句话描述这个单词给人的核心感觉或画面感。
+2.  **词汇关系:** 列出其最核心的3-5个近义词和3-5个反义词（俄语原文及中文翻译）。
+3.  **词源故事:** 简要解释其词根、词缀的来源和意义（中文）。
+
+**第二象限：顺口溜**
+1.  **发音拆解:** 提供一个易于记忆的音节拆分（俄语音节）。
+2.  **固定搭配与口诀:** 列出最常见的1-2个固定搭配（俄语原文及中文翻译），并创作一句简短押韵的中文口诀来帮助记忆。
+
+**第三象限：长啥样**
+1.  **拼写拆分:** 将单词的拼写拆分成几个有特点的字母组合块（俄语字母组合）。
+2.  **派生词家族:** 列出它的名词、动词、形容词或副词等不同形式（俄语原文及中文翻译）。
+3.  **易混淆词辨析:** 找一个与它拼写或发音相近的易混淆俄语词，并简要说明二者区别（中文解释）。
+4.  **主题联想图:** 构思一个简单的视觉主题（中文描述），并列出另外3个可以和它一起打包记忆的相关俄语单词及中文翻译。
+
+**第四象限：反复习得**
+1.  **选字母组词填空:** 创建一个填空题（俄语原文，挖空此单词），提供上下文。同时，生成该单词的**所有单个字母**（例如：дом -> ['д', 'о', 'м']），并添加至少3个**与该单词所有字母均不重复的随机俄语误导字母**（例如：'ж', 'ф', 'ц'），确保选项总数为单词长度 + 3到5个误导字母。将所有字母（包括正确的和误导的）打乱，形成选项。JSON中必须包含 'sentence' (挖空句子和中文翻译), 'answer' (正确单词), 'choices' (俄语单个字母组成的数组)。
+2.  **读说测试:** 提出一个开放性问题，如“请用[在此处插入新单词]口头造一个俄语句子，并解释它的意思（中文）。”
+
+请严格按照我定义的 JSON Schema 格式返回所有信息，不要包含任何额外文字或解释，只返回 JSON 对象。`;
+
+                const result = await callGeminiAPI(prompt, schema);
+                fourQuadrantLoading.classList.add('hidden'); // Hide loading spinner
+
+                if (result) {
+                    let htmlContent = '';
+
+                    // Quadrant 1: 感觉画面
+                    if (result.quadrant1) {
+                        htmlContent += `
+                            <div class="quadrant-section">
+                                <h3>第一象限：感觉画面</h3>
+                                <p><strong>1. 语境与感觉:</strong></p>
+                                <ul>
+                                    ${result.quadrant1.contextAndFeeling.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                                <p>核心感觉/画面感: ${result.quadrant1.coreFeeling}</p>
+                                <p><strong>2. 词汇关系:</strong></p>
+                                <p>近义词: ${result.quadrant1.vocabularyRelations.synonyms.join('; ')}</p>
+                                <p>反义词: ${result.quadrant1.vocabularyRelations.antonyms.join('; ')}</p>
+                                <p><strong>3. 词源故事:</strong> ${result.quadrant1.etymology}</p>
+                            </div>
+                        `;
+                    }
+
+                    // Quadrant 2: 顺口溜
+                    if (result.quadrant2) {
+                        htmlContent += `
+                            <div class="quadrant-section">
+                                <h3>第二象限：顺口溜</h3>
+                                <p><strong>1. 发音拆解:</strong> ${result.quadrant2.pronunciationBreakdown}</p>
+                                <p><strong>2. 固定搭配与口诀:</strong></p>
+                                <ul>
+                                    ${result.quadrant2.collocationsAndRhyme.collocations.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                                <p>口诀: <strong>"${result.quadrant2.collocationsAndRhyme.mnemonicRhyme}"</strong></p>
+                            </div>
+                        `;
+                    }
+
+                    // Quadrant 3: 长啥样
+                    if (result.quadrant3) {
+                        htmlContent += `
+                            <div class="quadrant-section">
+                                <h3>第三象限：长啥样</h3>
+                                <p><strong>1. 拼写拆分:</strong> ${result.quadrant3.spellingBreakdown.join(' - ')}</p>
+                                <p><strong>2. 派生词家族:</strong></p>
+                                <ul>
+                                    ${Object.entries(result.quadrant3.derivedWords).map(([type, words]) => {
+                                        if (words && words.length > 0) {
+                                            return `<li>${type.charAt(0).toUpperCase() + type.slice(1)}: ${words.join(', ')}</li>`;
+                                        }
+                                        return '';
+                                    }).join('')}
+                                </ul>
+                                <p><strong>3. 易混淆词辨析:</strong></p>
+                                <p>词: <strong>${result.quadrant3.confusableWord.word}</strong></p>
+                                <p>区别: ${result.quadrant3.confusableWord.distinction}</p>
+                                <p><strong>4. 主题联想图:</strong></p>
+                                <p>主题: ${result.quadrant3.thematicAssociation.theme}</p>
+                                <p>相关单词: ${result.quadrant3.thematicAssociation.relatedWords.join(', ')}</p>
+                            </div>
+                        `;
+                    }
+
+                    // Quadrant 4: 反复习得
+                    if (result.quadrant4 && result.quadrant4.fillInTheBlankTest) {
+                        const test = result.quadrant4.fillInTheBlankTest;
+                        const originalWord = test.answer;
+                        
+                        let choicesHtml = '';
+                        if (test.choices && Array.isArray(test.choices)) {
+                            choicesHtml = shuffleArray(test.choices).map(char => `<div class="letter-choice" data-char="${char}">${char}</div>`).join('');
+                        } else {
+                            console.warn("LLM did not return valid choices for fill-in-the-blank test.");
+                            choicesHtml = '<p class="text-red-500">无法加载字母选项。</p>'; // Fallback message
+                        }
+
+                        htmlContent += `
+                            <div class="quadrant-section">
+                                <h3>第四象限：反复习得</h3>
+                                <p><strong>1. 选字母组词填空:</strong></p>
+                                <p class="mb-4">${test.sentence.replace(originalWord, '<span id="fillInTheBlankPlaceholder" class="fill-in-the-blank-word">______</span>')}</p>
+                                <div id="letterChoices" class="letter-choices">
+                                    ${choicesHtml}
+                                </div>
+                                <div class="flex justify-center mt-4 space-x-4">
+                                    <button id="checkFillInTheBlankBtn" class="button-primary bg-blue-500 hover:bg-blue-600">检查</button>
+                                    <button id="resetFillInTheBlankBtn" class="button-primary bg-gray-500 hover:bg-gray-600">重置</button>
+                                </div>
+                                <p id="fillInTheBlankFeedback" class="text-lg font-semibold h-6 mt-4"></p>
+                                <p><strong>2. 读说测试:</strong></p>
+                                <p>${result.quadrant4.speakingTest.replace('[在此处插入新单词]', word)}</p>
+                            </div>
+                        `;
+                    }
+                    fourQuadrantOutput.innerHTML = htmlContent;
+
+                    // Add event listeners for the fill-in-the-blank game after content is loaded
+                    if (result.quadrant4 && result.quadrant4.fillInTheBlankTest) {
+                        // Retrieve elements *after* they are rendered in the DOM
+                        const letterChoicesContainer = document.getElementById('letterChoices');
+                        const fillInTheBlankPlaceholder = document.getElementById('fillInTheBlankPlaceholder');
+                        const checkFillInTheBlankBtn = document.getElementById('checkFillInTheBlankBtn');
+                        const resetFillInTheBlankBtn = document.getElementById('resetFillInTheBlankBtn');
+                        const fillInTheBlankFeedback = document.getElementById('fillInTheBlankFeedback');
+
+                        let selectedLetters = [];
+                        const correctWord = result.quadrant4.fillInTheBlankTest.answer;
+
+                        if (letterChoicesContainer) { // Defensive check
+                            letterChoicesContainer.addEventListener('click', (event) => {
+                                const target = event.target;
+                                if (target.classList.contains('letter-choice') && !target.classList.contains('selected')) {
+                                    target.classList.add('selected');
+                                    selectedLetters.push(target.dataset.char);
+                                    if (fillInTheBlankPlaceholder) { // Defensive check
+                                        fillInTheBlankPlaceholder.textContent = selectedLetters.join('');
+                                    }
+                                }
+                            });
+                        }
+
+                        if (checkFillInTheBlankBtn) { // Defensive check
+                            checkFillInTheBlankBtn.addEventListener('click', () => {
+                                const userAnswer = selectedLetters.join('');
+                                if (fillInTheBlankFeedback) { // Defensive check
+                                    if (userAnswer === correctWord) {
+                                        fillInTheBlankFeedback.textContent = '正确！';
+                                        fillInTheBlankFeedback.classList.remove('text-red-600');
+                                        fillInTheBlankFeedback.classList.add('text-green-600');
+                                        if (fillInTheBlankPlaceholder) { // Defensive check
+                                            fillInTheBlankPlaceholder.classList.add('correct');
+                                        }
+                                        if (letterChoicesContainer) { // Defensive check
+                                            letterChoicesContainer.querySelectorAll('.letter-choice').forEach(choice => {
+                                                choice.style.pointerEvents = 'none'; // Disable all choices
+                                                // Highlight only letters that are part of the correct word and were selected
+                                                if (correctWord.includes(choice.dataset.char) && selectedLetters.includes(choice.dataset.char)) {
+                                                    choice.classList.add('correct');
+                                                }
+                                            });
+                                        }
+                                        checkFillInTheBlankBtn.disabled = true;
+                                        if (resetFillInTheBlankBtn) resetFillInTheBlankBtn.disabled = true; // No need to reset after correct
+                                    } else {
+                                        fillInTheBlankFeedback.textContent = `错误。正确答案是：${correctWord}。请重试。`;
+                                        fillInTheBlankFeedback.classList.remove('text-green-600');
+                                        fillInTheBlankFeedback.classList.add('text-red-600');
+                                        if (fillInTheBlankPlaceholder) { // Defensive check
+                                            fillInTheBlankPlaceholder.classList.add('incorrect');
+                                        }
+                                        // Do not disable choices, let user try again.
+                                    }
+                                }
+                            });
+                        }
+
+                        if (resetFillInTheBlankBtn) { // Defensive check
+                            resetFillInTheBlankBtn.addEventListener('click', () => {
+                                selectedLetters = [];
+                                if (fillInTheBlankPlaceholder) { // Defensive check
+                                    fillInTheBlankPlaceholder.textContent = '______';
+                                    fillInTheBlankPlaceholder.classList.remove('correct', 'incorrect');
+                                }
+                                if (fillInTheBlankFeedback) { // Defensive check
+                                    fillInTheBlankFeedback.textContent = '';
+                                }
+                                if (letterChoicesContainer) { // Defensive check
+                                    letterChoicesContainer.querySelectorAll('.letter-choice').forEach(choice => {
+                                        choice.classList.remove('selected', 'correct', 'incorrect');
+                                        choice.style.pointerEvents = 'auto'; // Re-enable choices
+                                    });
+                                }
+                                if (checkFillInTheBlankBtn) checkFillInTheBlankBtn.disabled = false;
+                            });
+                        }
+                    }
+
+                } else {
+                    fourQuadrantOutput.innerHTML = `<p class="text-red-500 text-center">生成助记材料失败，请稍后再试或尝试其他单词。</p>`;
+                }
+            });
+        }
+
+
+        // 切换模式功能
+        function switchMode(mode, initialWord = '') { // 接受 initialWord 参数
+            currentMode = mode;
+            // 移除所有模式按钮的 active 状态
+            document.querySelectorAll('.mode-button').forEach(btn => {
+                // 排除 "添加单词" 按钮
+                if (btn.id !== 'openAddWordModalBtn') {
+                    btn.classList.remove('active');
+                }
+            });
+            // 为当前模式按钮添加 active 状态
+            const currentModeButton = document.getElementById(`${mode}ModeBtn`);
+            if (currentModeButton) { // 确保按钮存在
+                currentModeButton.classList.add('active');
+            }
+
+
+            gameArea.classList.remove('fade-in'); // 移除动画类以便重新应用
+            void gameArea.offsetWidth; // 触发回流以重置动画
+            gameArea.classList.add('fade-in'); // 添加动画类
+
+            // 确保在切换模式时关闭所有模态框
+            addWordModal.classList.remove('show');
+            relatedWordsModal.classList.remove('show');
+            writingTopicModal.classList.remove('show');
+
+            switch (mode) {
+                case 'flashcard':
+                    loadFlashcardMode();
+                    break;
+                case 'matchingGame':
+                    loadMatchingGameMode();
+                    break;
+                case 'speakingPractice':
+                    loadSpeakingPracticeMode();
+                    break;
+                case 'writingPractice':
+                    loadWritingPracticeMode(); // 进入写作模式时先显示主题选择模态框
+                    break;
+                case 'wordLookup': // 词汇查询模式
+                    loadWordLookupMode();
+                    break;
+                case 'fourQuadrant': // 新增的四象限模式
+                    loadFourQuadrantMode(initialWord); // 传递 initialWord
+                    break;
+                default:
+                    loadFlashcardMode();
+            }
+        }
+
+        // 事件监听器：模式选择按钮
+        flashcardModeBtn.addEventListener('click', () => switchMode('flashcard'));
+        matchingGameModeBtn.addEventListener('click', () => switchMode('matchingGame'));
+        speakingPracticeModeBtn.addEventListener('click', () => switchMode('speakingPractice'));
+        writingPracticeModeBtn.addEventListener('click', () => switchMode('writingPractice'));
+        wordLookupModeBtn.addEventListener('click', () => switchMode('wordLookup'));
+        fourQuadrantModeBtn.addEventListener('click', () => switchMode('fourQuadrant')); // 四象限模式按钮事件
+
+        // 页面加载完成后，默认加载抽认卡模式
+        document.addEventListener('DOMContentLoaded', () => {
+            switchMode(currentMode);
+        });
+    </script>
+</body>
+</html>

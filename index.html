@@ -1792,6 +1792,10 @@
                             const conjugationPrompt = `请为俄语动词 "${russianWordForForms}" 生成其完整的现在时变位表。请包括所有的人称形式（我、你、他/她/它、我们、你们、他们），并以 JSON 格式返回。JSON应包含一个“conjugation”数组，数组中的每个对象有“personNumber”（人称/数）和“form”（形式）字段。`;
                             const conjugationResult = await callGeminiAPI(conjugationPrompt, conjugationSchema);
 
+                            const apiKey = "AIzaSyBataOa2fBczg3t3bwXzMEL1nIfbt8qeMo"; // 您的 Gemini API 密钥
+                            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+
                             conjugationTableBody.innerHTML = ''; // Clear loading
                             if (conjugationResult && Array.isArray(conjugationResult.conjugation) && conjugationResult.conjugation.length > 0) {
                                 conjugationResult.conjugation.forEach(form => {

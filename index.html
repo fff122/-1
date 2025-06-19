@@ -593,7 +593,7 @@
                 // the runtime automatically injects the necessary API key for Google APIs.
                 // If you are running this outside of Canvas, you would need to provide a valid API key here.
                 const apiKey = "AIzaSyCCos3wCszW_KcCKVAFAiXUwWt1Dz-VRWs";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                const apiUrl = `https://g-proxy.eh.cx/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
